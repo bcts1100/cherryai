@@ -1,0 +1,99 @@
+// REPLACE LINES 558-594 (CREATE CALENDAR) WITH THIS:
+
+    // Extract calendar events - CREATE (calendar keyword now optional)
+    if ((lowerUser.includes('add') || lowerUser.includes('schedule') || lowerUser.includes('put')) &&
+        !lowerUser.includes('what') && !lowerUser.includes('show') && !lowerUser.includes('delete') && !lowerUser.includes('remove') && !lowerUser.includes('cancel') &&
+        // Must have time/date indicator to avoid false positives
+        (lowerUser.match(/\d+\s*(am|pm)/i) || lowerUser.match(/\d+:\d+/) || lowerUser.includes('today') || lowerUser.includes('tomorrow') || 
+         lowerUser.includes('monday') || lowerUser.includes('tuesday') || lowerUser.includes('wednesday') || 
+         lowerUser.includes('thursday') || lowerUser.includes('friday') || lowerUser.includes('saturday') || lowerUser.includes('sunday'))) {
+        
+        console.log('🔍 Calendar create request detected');
+        
+        // Try to create calendar event if authenticated
+        if (req.session.googleTokens) {
+            console.log('✓ Google tokens found in session');
+            oauth2Client.setCredentials(req.session.googleTokens);
+            
+            // Extract event details
+            const title = extractEventTitle(userMessage);
+            const dateTime = extractDateTime(userMessage);
+            
+            console.log(`📋 Extracted: title="${title}", dateTime=${dateTime.toLocaleString()}`);
+            
+            if (title && dateTime) {
+                try {
+                    const event = await createGoogleCalendarEvent(title, dateTime);
+                    extracted.calendar = { action: 'created', title, dateTime, eventId: event.id };
+                    
+                    // Send notification
+                    await sendPushNotification(`Added to calendar: ${title}`);
+                } catch (error) {
+                    console.error('❌ Calendar create error:', error.message);
+                    extracted.calendar = { action: 'error', error: error.message };
+                }
+            } else {
+                console.log('⚠️ Could not extract title or datetime');
+            }
+        } else {
+            console.log('❌ No Google tokens - calendar not connected!');
+            console.log('   User needs to visit: http://localhost:3000/auth/google');
+        }
+    }
+
+// REPLACE LINES 596-646 (DELETE CALENDAR) WITH THIS:
+
+    // Extract calendar events - DELETE (calendar keyword now optional)
+    if ((lowerUser.includes('delete') || lowerUser.includes('remove') || lowerUser.includes('cancel')) &&
+        !lowerUser.includes('what') && !lowerUser.includes('show')) {
+        
+        console.log('🔍 Calendar delete request detected');
+        
+        if (req.session.googleTokens) {
+            console.log('✓ Google tokens found');
+            oauth2Client.setCredentials(req.session.googleTokens);
+            
+            // Extract what to delete - FIXED REGEX
+            let searchTerm = '';
+            
+            // Match pattern: action_verb + 1-2_words + stop_at_these_words
+            // Stops at: from, on, at, today, tomorrow, this, next, numbers, calendar, event
+            let match = userMessage.match(/(?:delete|remove|cancel)\s+([a-z]+(?:\s+[a-z]+)?)\s*(?:from|on|at|in|to|today|tomorrow|this|next|calendar|event|\d|$)/i);
+            
+            if (match) {
+                searchTerm = match[1].trim();
+                console.log(`📋 Extracted search term from regex: "${searchTerm}"`);
+            } else {
+                // Fallback: keyword matching for common events
+                if (lowerUser.includes('physical therapy') || lowerUser.includes('pt appointment')) searchTerm = 'physical therapy';
+                else if (lowerUser.includes('team meeting')) searchTerm = 'team meeting';
+                else if (lowerUser.includes('gym')) searchTerm = 'gym';
+                else if (lowerUser.includes('workout')) searchTerm = 'workout';
+                else if (lowerUser.includes('lunch')) searchTerm = 'lunch';
+                else if (lowerUser.includes('dinner')) searchTerm = 'dinner';
+                else if (lowerUser.includes('breakfast')) searchTerm = 'breakfast';
+                else if (lowerUser.includes('meeting')) searchTerm = 'meeting';
+                else if (lowerUser.includes('appointment')) searchTerm = 'appointment';
+                
+                if (searchTerm) {
+                    console.log(`📋 Extracted search term from keywords: "${searchTerm}"`);
+                }
+            }
+            
+            if (searchTerm) {
+                console.log(`🔍 Will search for: "${searchTerm}"`);
+                try {
+                    const result = await deleteGoogleCalendarEvent(searchTerm, req);
+                    extracted.calendar = { action: 'deleted', ...result };
+                    
+                    // Send notification
+                    await sendPushNotification(`Deleted from calendar: ${result.eventTitle || searchTerm}`);
+                } catch (error) {
+                    console.error('Calendar delete error:', error);
+                    extracted.calendar = { action: 'error', error: error.message };
+                }
+            } else {
+                console.log('⚠️ Could not extract event name to delete');
+            }
+        }
+    }

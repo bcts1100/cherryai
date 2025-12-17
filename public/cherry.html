@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHERRY - Complete Health System</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            /* Woodsy Earth Tones */
+            --forest-dark: #1a2f1a;
+            --forest-med: #2d4a2d;
+            --moss: #4a6741;
+            --sage: #6b8e65;
+            --bark: #5d4e37;
+            --clay: #8b7355;
+            --wheat: #c9b17a;
+            --cream: #e8dcc4;
+            --accent-green: #7cb342;
+            --accent-amber: #d68910;
+            --accent-red: #a0522d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: var(--cream);
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 3px solid var(--accent-green);
+            margin-bottom: 30px;
+            background: rgba(42, 74, 42, 0.3);
+            border-radius: 12px;
+        }
+        
+        .header h1 {
+            font-size: 3.5em;
+            color: var(--accent-green);
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header .subtitle {
+            color: var(--wheat);
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(124, 179, 66, 0.2);
+            border: 2px solid var(--accent-green);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 8px;
+            color: var(--accent-green);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: rgba(42, 74, 42, 0.3);
+            padding: 10px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: var(--wheat);
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab:hover {
+            background: rgba(124, 179, 66, 0.2);
+            color: var(--accent-green);
+        }
+        
+        .tab.active {
+            background: var(--accent-green);
+            color: var(--forest-dark);
+        }
+        
+        .card {
+            background: rgba(45, 74, 45, 0.4);
+            border: 1px solid var(--moss);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2 {
+            color: var(--accent-green);
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .card h3 {
+            color: var(--sage);
+            margin: 20px 0 15px;
+            font-size: 1.2em;
+        }
+        
+        /* Chat Styles */
+        .messages {
+            height: 550px;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(26, 47, 26, 0.5);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .messages::-webkit-scrollbar { width: 10px; }
+        .messages::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .messages::-webkit-scrollbar-thumb {
+            background: var(--accent-green);
+            border-radius: 5px;
+        }
+        
+        .message {
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+            line-height: 1.6;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            background: linear-gradient(135deg, var(--moss) 0%, var(--forest-med) 100%);
+            margin-left: auto;
+            text-align: right;
+            border: 1px solid var(--sage);
+        }
+        
+        .message.assistant {
+            background: linear-gradient(135deg, rgba(124, 179, 66, 0.15) 0%, rgba(124, 179, 66, 0.05) 100%);
+            border-left: 4px solid var(--accent-green);
+        }
+        
+        .message.system {
+            background: rgba(214, 137, 16, 0.15);
+            border-left: 4px solid var(--accent-amber);
+            font-size: 0.9em;
+            max-width: 90%;
+        }
+        
+        .message-time {
+            font-size: 0.75em;
+            color: var(--wheat);
+            opacity: 0.7;
+            margin-top: 6px;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(26, 47, 26, 0.5);
+            border-radius: 8px;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 14px 18px;
+            background: rgba(0,0,0,0.3);
+            border: 1.5px solid var(--moss);
+            border-radius: 8px;
+            color: var(--cream);
+            font-size: 1em;
+        }
+        
+        .input-area input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+        
+        .input-area input::placeholder {
+            color: var(--wheat);
+            opacity: 0.6;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--accent-green) 0%, #689f38 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(124, 179, 66, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: rgba(26, 47, 26, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid var(--moss);
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-3px);
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            color: var(--wheat);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: 800;
+            color: var(--accent-green);
+            margin-bottom: 5px;
+        }
+        
+        .metric-sub {
+            font-size: 0.85em;
+            color: var(--sage);
+        }
+        
+        .metric-trend {
+            font-size: 0.8em;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .trend-up {
+            background: rgba(124, 179, 66, 0.2);
+            color: var(--accent-green);
+        }
+        
+        .trend-down {
+            background: rgba(160, 82, 45, 0.2);
+            color: var(--accent-red);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(26, 47, 26, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--moss);
+        }
+        
+        .chart-container h3 {
+            color: var(--accent-green);
+            margin-bottom: 15px;
+        }
+        
+        canvas {
+            max-height: 300px;
+        }
+        
+        /* Log Entry Form */
+        .log-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-size: 0.9em;
+            color: var(--wheat);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1.5px solid var(--moss);
+            border-radius: 6px;
+            color: var(--cream);
+            font-size: 1em;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+        
+        .typing {
+            display: inline-flex;
+            gap: 6px;
+            padding: 12px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+        
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(124, 179, 66, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 3px solid var(--accent-green);
+        }
+        
+        .stat-box.warning {
+            background: rgba(214, 137, 16, 0.1);
+            border-left-color: var(--accent-amber);
+        }
+        
+        .stat-box.danger {
+            background: rgba(160, 82, 45, 0.1);
+            border-left-color: var(--accent-red);
+        }
+        
+        .stat-label {
+            font-size: 0.75em;
+            color: var(--wheat);
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+        
+        .stat-box.warning .stat-value {
+            color: var(--accent-amber);
+        }
+        
+        .stat-box.danger .stat-value {
+            color: var(--accent-red);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function App() {
+            const [tab, setTab] = useState('chat');
+            const [messages, setMessages] = useState([{
+                role: 'assistant',
+                content: "Morning Timothy. CHERRY's online. Let's track your health.",
+                timestamp: new Date().toLocaleTimeString()
+            }]);
+            const [input, setInput] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const [metrics, setMetrics] = useState({
+                sleep: 0, energy: 0, knee: 0, seltzers: 0,
+                weight: 215, steps: 0, calories: 0
+            });
+            const [history, setHistory] = useState([]);
+            const [conversationHistory, setConversationHistory] = useState([]);
+            const [nutrition, setNutrition] = useState(null);
+            const [goals, setGoals] = useState([]);
+            const [activeGoal, setActiveGoal] = useState(null);
+            const [insights, setInsights] = useState(null);
+            const [customComponents, setCustomComponents] = useState([]);
+            const [loadedComponents, setLoadedComponents] = useState({});
+            const messagesEndRef = useRef(null);
+            const inputRef = useRef(null);  // NEW: Input ref for auto-focus
+
+            useEffect(() => {
+                loadMetricsHistory();
+                loadNutrition();
+                loadGoals();
+                loadInsights();
+                loadCustomComponents();
+                
+                // Auto-focus input on load
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, []);
+            
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages, tab]); // Scroll when messages change OR when switching to chat tab
+
+            const loadNutrition = async () => {
+                try {
+                    const res = await fetch('http://localhost:3000/api/nutrition/today');
+                    const data = await res.json();
+                    setNutrition(data);
+                } catch (error) {
+                    console.error('Failed to load nutrition:', error);
+                }
+            };
+
+            const loadGoals = async () => {
+                try {
+                    const res = await fetch('http://localhost:3000/api/goals');
+                    const data = await res.json();
+                    setGoals(data || []);
+                } catch (error) {
+                    console.error('Failed to load goals:', error);
+                }
+            };
+
+            const loadInsights = async () => {
+                try {
+                    const res = await fetch('http://localhost:3000/api/insights');
+                    const data = await res.json();
+                    setInsights(data);
+                } catch (error) {
+                    console.error('Failed to load insights:', error);
+                }
+            };
+
+            const loadCustomComponents = async () => {
+                try {
+                    const res = await fetch('http://localhost:3000/api/components');
+                    const data = await res.json();
+                    
+                    // FORCE CLEAR if no components returned
+                    if (!data.components || data.components.length === 0) {
+                        console.log('No custom components - clearing state');
+                        setCustomComponents([]);
+                        setLoadedComponents({});
+                        return;
+                    }
+                    
+                    setCustomComponents(data.components || []);
+                    
+                    // Load each component's code
+                    for (const comp of (data.components || [])) {
+                        try {
+                            const codeRes = await fetch(`http://localhost:3000/api/components/${comp.name}`);
+                            const codeData = await codeRes.json();
+                            
+                            // Create component from code string
+                            const ComponentFunc = createComponentFromCode(codeData.code, comp.name);
+                            
+                            setLoadedComponents(prev => ({
+                                ...prev,
+                                [comp.name]: ComponentFunc
+                            }));
+                            
+                            console.log(`✓ Loaded custom component: ${comp.name}`);
+                        } catch (error) {
+                            console.error(`Failed to load component ${comp.name}:`, error);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to load custom components:', error);
+                }
+            };
+
+            const createComponentFromCode = (code, name) => {
+                try {
+                    // Remove export statement before transformation
+                    let cleanCode = code.replace(/^export\s+default\s+/, '');
+                    
+                    // Extract the actual function name from the code
+                    const functionNameMatch = cleanCode.match(/^function\s+(\w+)/);
+                    const actualFunctionName = functionNameMatch ? functionNameMatch[1] : name;
+                    
+                    console.log(`Compiling component: expected="${name}", actual="${actualFunctionName}"`);
+                    
+                    // Transform JSX to JavaScript using Babel
+                    const result = window.Babel.transform(cleanCode, {
+                        presets: ['react'],
+                        filename: `${name}.jsx`
+                    });
+                    
+                    const transformedCode = result.code;
+                    
+                    // Wrap the code to return the component using the ACTUAL function name
+                    const componentFunction = new Function(
+                        'React',
+                        'useState',
+                        'useEffect', 
+                        'useRef',
+                        `
+                        'use strict';
+                        ${transformedCode}
+                        return ${actualFunctionName};
+                        `
+                    );
+                    
+                    // Execute with React and hooks in scope
+                    const Component = componentFunction(React, useState, useEffect, useRef);
+                    
+                    if (!Component) {
+                        throw new Error('Component not found after execution');
+                    }
+                    
+                    console.log(`✓ Successfully loaded component: ${name} (function: ${actualFunctionName})`);
+                    return Component;
+                    
+                } catch (error) {
+                    console.error(`❌ Failed to compile component ${name}:`, error);
+                    console.error('Code:', code);
+                    
+                    // Return error placeholder
+                    return ({ onSave }) => (
+                        React.createElement('div', {
+                            className: 'metric-card',
+                            style: {
+                                background: 'rgba(255, 107, 107, 0.1)',
+                                border: '2px solid var(--accent-red)',
+                                padding: '15px'
+                            }
+                        }, [
+                            React.createElement('div', { 
+                                key: 'label',
+                                className: 'metric-label',
+                                style: { color: 'var(--accent-red)' }
+                            }, `⚠ ${name}`),
+                            React.createElement('div', {
+                                key: 'error', 
+                                style: { 
+                                    color: 'var(--wheat)', 
+                                    fontSize: '0.85em',
+                                    marginTop: '8px',
+                                    lineHeight: '1.4'
+                                } 
+                            }, `Failed to load. Say "remove ${name.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}" to delete.`)
+                        ])
+                    );
+                }
+            };
+
+            const loadMetricsHistory = async () => {
+                // This will load last 30 days of metrics for charts
+                try {
+                    const res = await fetch('http://localhost:3000/api/metrics/history?days=30');
+                    const data = await res.json();
+                    setHistory(data || []);
+                } catch (error) {
+                    console.error('Failed to load history:', error);
+                }
+            };
+
+            const loadTodayMetrics = async () => {
+                // Load TODAY'S actual metrics from database
+                try {
+                    const res = await fetch('http://localhost:3000/api/metrics/today');
+                    const data = await res.json();
+                    if (data && Object.keys(data).length > 0) {
+                        setMetrics(data);
+                    }
+                } catch (error) {
+                    console.error('Failed to load today metrics:', error);
+                }
+            };
+
+            const sendMessage = async () => {
+                if (!input.trim() || isTyping) return;
+
+                const userMessage = input.trim();
+                setInput('');
+                
+                setMessages(prev => [...prev, {
+                    role: 'user',
+                    content: userMessage,
+                    timestamp: new Date().toLocaleTimeString()
+                }]);
+
+                setIsTyping(true);
+
+                try {
+                    const response = await fetch('http://localhost:3000/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: userMessage,
+                            history: conversationHistory
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        setMessages(prev => [...prev, {
+                            role: 'assistant',
+                            content: data.message,
+                            timestamp: new Date().toLocaleTimeString()
+                        }]);
+
+                        setConversationHistory(prev => [
+                            ...prev,
+                            { role: 'user', content: userMessage },
+                            { role: 'assistant', content: data.message }
+                        ]);
+
+                        // Reload metrics if data was logged
+                        if (data.extracted) {
+                            loadMetricsHistory();
+                            loadNutrition();  // Also reload nutrition for calories
+                            
+                            // Reload goals if a goal was created
+                            if (data.extracted.goalCreated) {
+                                loadGoals();
+                            }
+                            
+                            // Reload components if modification occurred - v11.0
+                            if (data.extracted.modificationResult) {
+                                loadCustomComponents();
+                                loadTodayMetrics();
+                                loadMetricsHistory();
+                                console.log('✓ Modification applied:', data.extracted.modificationResult.message);
+                                
+                                // Switch to Dashboard to show the change
+                                setTimeout(() => {
+                                    setTab('dashboard');
+                                }, 1000);
+                            }
+                        }
+                    } else {
+                        setMessages(prev => [...prev, {
+                            role: 'system',
+                            content: `Error: ${data.message || 'Connection failed'}`,
+                            timestamp: new Date().toLocaleTimeString()
+                        }]);
+                    }
+                } catch (error) {
+                    setMessages(prev => [...prev, {
+                        role: 'system',
+                        content: 'Server connection error. Check that server is running.',
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                }
+
+                setIsTyping(false);
+                
+                // Auto-focus input after response
+                setTimeout(() => {
+                    if (inputRef.current) {
+                        inputRef.current.focus();
+                    }
+                }, 100);
+            };
+
+            const saveManualMetrics = async () => {
+                const date = new Date().toISOString().split('T')[0];
+                
+                try {
+                    await fetch('http://localhost:3000/api/metrics', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            date,
+                            ...metrics
+                        })
+                    });
+                    
+                    setMessages(prev => [...prev, {
+                        role: 'system',
+                        content: '✓ Metrics saved to database',
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                    
+                    loadMetricsHistory();
+                } catch (error) {
+                    setMessages(prev => [...prev, {
+                        role: 'system',
+                        content: '✗ Failed to save metrics',
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                }
+            };
+
+            const renderChat = () => (
+                <div className="card">
+                    <h2>💬 AI Assistant</h2>
+                    
+                    <div className="messages">
+                        {messages.map((m, i) => (
+                            <div key={i} className={`message ${m.role}`}>
+                                <div style={{whiteSpace: 'pre-line'}}>{m.content}</div>
+                                <div className="message-time">{m.timestamp}</div>
+                            </div>
+                        ))}
+                        {isTyping && (
+                            <div className="message assistant">
+                                <div className="typing">
+                                    <div className="typing-dot"></div>
+                                    <div className="typing-dot"></div>
+                                    <div className="typing-dot"></div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <div className="input-area">
+                        <input
+                            ref={inputRef}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                            placeholder="Talk naturally - I understand context..."
+                            disabled={isTyping}
+                            autoFocus
+                        />
+                        <button className="btn" onClick={sendMessage} disabled={isTyping}>
+                            Send
+                        </button>
+                    </div>
+                </div>
+            );
+
+            const renderDashboard = () => {
+                // Use metrics state for today's actual data
+                const today = metrics;
+                const yesterday = history[history.length - 1] || {};
+                
+                // Get calories from nutrition tab data (real-time from food_log)
+                const todayCalories = nutrition?.totals?.calories || 0;
+                
+                const getTrend = (current, previous) => {
+                    if (!previous) return null;
+                    return current > previous ? 'up' : current < previous ? 'down' : null;
+                };
+
+                return (
+                    <>
+                        <div className="card">
+                            <h2>📊 Today's Metrics</h2>
+                            
+                            <div className="metrics-grid">
+                                <div className="metric-card">
+                                    <div className="metric-label">Sleep Quality</div>
+                                    <div className="metric-value">{today.sleep || 0}/10</div>
+                                    {getTrend(today.sleep, yesterday.sleep) && (
+                                        <div className={`metric-trend trend-${getTrend(today.sleep, yesterday.sleep)}`}>
+                                            {getTrend(today.sleep, yesterday.sleep) === 'up' ? '↑' : '↓'} vs yesterday
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="metric-card">
+                                    <div className="metric-label">Energy Level</div>
+                                    <div className="metric-value">{today.energy || 0}/10</div>
+                                    {getTrend(today.energy, yesterday.energy) && (
+                                        <div className={`metric-trend trend-${getTrend(today.energy, yesterday.energy)}`}>
+                                            {getTrend(today.energy, yesterday.energy) === 'up' ? '↑' : '↓'} vs yesterday
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="metric-card">
+                                    <div className="metric-label">Knee Pain</div>
+                                    <div className="metric-value" style={{color: today.knee > 6 ? 'var(--accent-red)' : 'var(--accent-green)'}}>
+                                        {today.knee || 0}/10
+                                    </div>
+                                    <div className="metric-sub">
+                                        {today.knee > 6 ? 'Flaring' : today.knee > 4 ? 'Manageable' : 'Good'}
+                                    </div>
+                                </div>
+                                
+                                <div className="metric-card">
+                                    <div className="metric-label">Weight</div>
+                                    <div className="metric-value">{today.weight || metrics.weight}<span style={{fontSize: '0.5em'}}>lbs</span></div>
+                                    {getTrend(today.weight, yesterday.weight) && (
+                                        <div className={`metric-trend trend-${getTrend(today.weight, yesterday.weight)}`}>
+                                            {getTrend(today.weight, yesterday.weight) === 'up' ? '↑' : '↓'} {Math.abs((today.weight || 0) - (yesterday.weight || 0)).toFixed(1)}lbs
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="metric-card">
+                                    <div className="metric-label">Steps Today</div>
+                                    <div className="metric-value">{(today.steps || 0).toLocaleString()}</div>
+                                    <div className="metric-sub">Goal: 10,000</div>
+                                </div>
+                                
+                                <div className="metric-card">
+                                    <div className="metric-label">Calories</div>
+                                    <div className="metric-value" style={{color: todayCalories < 2200 ? 'var(--accent-amber)' : 'var(--accent-green)'}}>
+                                        {Math.round(todayCalories)}
+                                    </div>
+                                    <div className="metric-sub">Target: 2200</div>
+                                </div>
+                                
+                                {/* Custom Components - v11.0 Self-Evolution */}
+                                {customComponents
+                                    .filter(c => c.location === 'dashboard' && c.active)
+                                    .map(comp => {
+                                        const Component = loadedComponents[comp.name];
+                                        return Component ? (
+                                            <div key={comp.name}>
+                                                <Component onSave={async (field, value) => {
+                                                    try {
+                                                        const date = new Date().toISOString().split('T')[0];
+                                                        await fetch('http://localhost:3000/api/metrics', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ date, [field]: value })
+                                                        });
+                                                        loadTodayMetrics();
+                                                        console.log(`✓ Saved ${field}: ${value}`);
+                                                    } catch (error) {
+                                                        console.error('Failed to save metric:', error);
+                                                    }
+                                                }} />
+                                            </div>
+                                        ) : null;
+                                    })
+                                }
+                            </div>
+
+                            <h3>Quick Entry</h3>
+                            <div className="log-form">
+                                <div className="form-group">
+                                    <label>Sleep (1-10)</label>
+                                    <input type="number" min="1" max="10" 
+                                        value={metrics.sleep}
+                                        onChange={(e) => setMetrics({...metrics, sleep: parseInt(e.target.value) || 0})} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Energy (1-10)</label>
+                                    <input type="number" min="1" max="10"
+                                        value={metrics.energy}
+                                        onChange={(e) => setMetrics({...metrics, energy: parseInt(e.target.value) || 0})} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Knee Pain (1-10)</label>
+                                    <input type="number" min="1" max="10"
+                                        value={metrics.knee}
+                                        onChange={(e) => setMetrics({...metrics, knee: parseInt(e.target.value) || 0})} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Weight (lbs)</label>
+                                    <input type="number" step="0.1"
+                                        value={metrics.weight}
+                                        onChange={(e) => setMetrics({...metrics, weight: parseFloat(e.target.value) || 0})} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Steps</label>
+                                    <input type="number"
+                                        value={metrics.steps}
+                                        onChange={(e) => setMetrics({...metrics, steps: parseInt(e.target.value) || 0})} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Calories</label>
+                                    <input type="number"
+                                        value={metrics.calories}
+                                        onChange={(e) => setMetrics({...metrics, calories: parseInt(e.target.value) || 0})} />
+                                </div>
+                            </div>
+                            
+                            <button className="btn" onClick={saveManualMetrics} style={{width: '100%'}}>
+                                💾 Save Metrics
+                            </button>
+                        </div>
+                    </>
+                );
+            };
+
+            const renderCharts = () => (
+                <div className="card">
+                    <h2>📈 Trends & Analytics</h2>
+                    <p style={{color: 'var(--wheat)', marginBottom: '20px'}}>
+                        Charts will populate as you track more data. Start logging your daily metrics!
+                    </p>
+                    
+                    <div className="quick-stats">
+                        <div className="stat-box">
+                            <div className="stat-label">Avg Sleep</div>
+                            <div className="stat-value">
+                                {history.length > 0 ? 
+                                    (history.reduce((sum, d) => sum + (d.sleep || 0), 0) / history.length).toFixed(1) : 
+                                    '0'}/10
+                            </div>
+                        </div>
+                        <div className="stat-box">
+                            <div className="stat-label">Avg Energy</div>
+                            <div className="stat-value">
+                                {history.length > 0 ? 
+                                    (history.reduce((sum, d) => sum + (d.energy || 0), 0) / history.length).toFixed(1) : 
+                                    '0'}/10
+                            </div>
+                        </div>
+                        <div className="stat-box warning">
+                            <div className="stat-label">Avg Knee</div>
+                            <div className="stat-value">
+                                {history.length > 0 ? 
+                                    (history.reduce((sum, d) => sum + (d.knee_pain || 0), 0) / history.length).toFixed(1) : 
+                                    '0'}/10
+                            </div>
+                        </div>
+                        <div className="stat-box">
+                            <div className="stat-label">Avg Cal</div>
+                            <div className="stat-value">
+                                {history.length > 0 ? 
+                                    Math.round(history.reduce((sum, d) => sum + (d.calories_consumed || 0), 0) / history.length) : 
+                                    '0'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="chart-container">
+                        <h3>Coming Soon: Interactive Charts</h3>
+                        <p style={{color: 'var(--wheat)'}}>
+                            Keep logging data and you'll see beautiful trend charts for:
+                            <br/>• Weight over time
+                            <br/>• Knee pain trends  
+                            <br/>• Sleep quality patterns
+                            <br/>• Calorie intake tracking
+                        </p>
+                    </div>
+                </div>
+            );
+
+            const renderNutrition = () => {
+                if (!nutrition) {
+                    return (
+                        <div className="card">
+                            <h2>🥗 Loading nutrition data...</h2>
+                        </div>
+                    );
+                }
+                
+                const { totals, rdas, foods } = nutrition;
+                
+                const getPercent = (value, rda) => {
+                    if (!rda) return 0;
+                    return Math.min(((value / rda) * 100).toFixed(0), 999);
+                };
+                
+                return (
+                    <div className="card">
+                        <h2>🥗 Daily Nutrition Tracker</h2>
+                        
+                        <h3>Macronutrients</h3>
+                        <div className="metrics-grid">
+                            <div className="metric-card">
+                                <div className="metric-label">Calories</div>
+                                <div className="metric-value">{totals.calories.toFixed(0)}</div>
+                                <div className="metric-sub">/ {rdas.calories} ({getPercent(totals.calories, rdas.calories)}%)</div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Protein</div>
+                                <div className="metric-value">{totals.protein.toFixed(1)}<span style={{fontSize: '0.5em'}}>g</span></div>
+                                <div className="metric-sub">/ {rdas.protein}g ({getPercent(totals.protein, rdas.protein)}%)</div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Carbs</div>
+                                <div className="metric-value">{totals.carbs.toFixed(1)}<span style={{fontSize: '0.5em'}}>g</span></div>
+                                <div className="metric-sub">/ {rdas.carbs}g ({getPercent(totals.carbs, rdas.carbs)}%)</div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Fat</div>
+                                <div className="metric-value">{totals.fat.toFixed(1)}<span style={{fontSize: '0.5em'}}>g</span></div>
+                                <div className="metric-sub">/ {rdas.fat}g ({getPercent(totals.fat, rdas.fat)}%)</div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Fiber</div>
+                                <div className="metric-value">{totals.fiber.toFixed(1)}<span style={{fontSize: '0.5em'}}>g</span></div>
+                                <div className="metric-sub">/ {rdas.fiber}g ({getPercent(totals.fiber, rdas.fiber)}%)</div>
+                            </div>
+                        </div>
+                        
+                        <h3>Vitamins & Minerals</h3>
+                        <div className="quick-stats">
+                            {[
+                                { key: 'vitamin_a', label: 'Vit A', unit: 'mcg' },
+                                { key: 'vitamin_c', label: 'Vit C', unit: 'mg' },
+                                { key: 'vitamin_d', label: 'Vit D', unit: 'mcg' },
+                                { key: 'calcium', label: 'Calcium', unit: 'mg' },
+                                { key: 'iron', label: 'Iron', unit: 'mg' },
+                                { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
+                                { key: 'potassium', label: 'Potassium', unit: 'mg' },
+                                { key: 'zinc', label: 'Zinc', unit: 'mg' }
+                            ].map(nutrient => {
+                                const value = totals[nutrient.key] || 0;
+                                const rda = rdas[nutrient.key] || 0;
+                                const percent = getPercent(value, rda);
+                                const statusClass = percent >= 100 ? '' : percent >= 50 ? 'warning' : 'danger';
+                                
+                                return (
+                                    <div key={nutrient.key} className={`stat-box ${statusClass}`}>
+                                        <div className="stat-label">{nutrient.label}</div>
+                                        <div className="stat-value">{percent}%</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        
+                        <h3>Today's Foods</h3>
+                        {foods.length === 0 ? (
+                            <p style={{color: 'var(--wheat)', padding: '20px'}}>
+                                No food logged yet today. Say "ate chicken breast" or "had lunch" to start tracking!
+                            </p>
+                        ) : (
+                            <div style={{marginTop: '15px'}}>
+                                {foods.map((food, i) => (
+                                    <div key={i} style={{
+                                        background: 'rgba(26, 47, 26, 0.5)',
+                                        padding: '15px',
+                                        borderRadius: '8px',
+                                        marginBottom: '10px',
+                                        borderLeft: '3px solid var(--accent-green)',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div style={{flex: 1}}>
+                                            <div style={{fontWeight: '600', color: 'var(--accent-green)', marginBottom: '5px'}}>
+                                                {food.food_name}
+                                            </div>
+                                            <div style={{fontSize: '0.9em', color: 'var(--wheat)'}}>
+                                                {food.calories && `${food.calories.toFixed(0)} cal`}
+                                                {food.protein && ` • ${food.protein.toFixed(1)}g protein`}
+                                                {food.carbs && ` • ${food.carbs.toFixed(1)}g carbs`}
+                                                {food.fat && ` • ${food.fat.toFixed(1)}g fat`}
+                                            </div>
+                                            <div style={{fontSize: '0.75em', color: 'var(--sage)', marginTop: '5px'}}>
+                                                {new Date(food.timestamp).toLocaleTimeString()}
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={async () => {
+                                                if (confirm(`Delete "${food.food_name}"?`)) {
+                                                    try {
+                                                        await fetch(`http://localhost:3000/api/nutrition/${food.id}`, {
+                                                            method: 'DELETE'
+                                                        });
+                                                        loadNutrition(); // Reload after delete
+                                                    } catch (error) {
+                                                        console.error('Failed to delete:', error);
+                                                    }
+                                                }
+                                            }}
+                                            style={{
+                                                background: 'rgba(255, 107, 107, 0.2)',
+                                                border: '1px solid var(--accent-red)',
+                                                color: 'var(--accent-red)',
+                                                padding: '8px 12px',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '0.85em',
+                                                marginLeft: '10px'
+                                            }}
+                                        >
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const renderGoal = (goal) => {
+                if (!goal) return null;
+                
+                const plan = goal.plan;
+                const progress = goal.recent_progress || [];
+                
+                // Calculate progress percentage
+                const progressPercent = goal.target_value > 0 
+                    ? Math.round((goal.current_value / goal.target_value) * 100)
+                    : 0;
+                
+                return (
+                    <div className="card">
+                        <h2>{goal.icon} {goal.title}</h2>
+                        <p style={{color: 'var(--wheat)', marginBottom: '20px'}}>{goal.description}</p>
+                        
+                        <div style={{marginBottom: '30px'}}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '10px'}}>
+                                <span style={{color: 'var(--sage)'}}>Progress</span>
+                                <span style={{color: 'var(--accent-green)', fontWeight: '600'}}>{progressPercent}%</span>
+                            </div>
+                            <div style={{
+                                width: '100%',
+                                height: '20px',
+                                background: 'rgba(26, 47, 26, 0.3)',
+                                borderRadius: '10px',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    width: `${progressPercent}%`,
+                                    height: '100%',
+                                    background: 'var(--accent-green)',
+                                    transition: 'width 0.5s ease'
+                                }}></div>
+                            </div>
+                        </div>
+                        
+                        {plan && (
+                            <>
+                                <h3>📋 Your Plan</h3>
+                                <div style={{
+                                    background: 'rgba(26, 47, 26, 0.3)',
+                                    padding: '20px',
+                                    borderRadius: '8px',
+                                    marginBottom: '20px'
+                                }}>
+                                    <div style={{marginBottom: '15px'}}>
+                                        <strong style={{color: 'var(--accent-green)'}}>{plan.title}</strong>
+                                        <div style={{color: 'var(--sage)', fontSize: '0.9em', marginTop: '5px'}}>
+                                            Duration: {plan.duration_days} days • Approach: {plan.approach}
+                                        </div>
+                                    </div>
+                                    
+                                    {plan.phases && plan.phases.map((phase, i) => (
+                                        <div key={i} style={{
+                                            marginBottom: '15px',
+                                            paddingBottom: '15px',
+                                            borderBottom: i < plan.phases.length - 1 ? '1px solid rgba(255,255,255,0.1)' : 'none'
+                                        }}>
+                                            <div style={{fontWeight: '600', color: 'var(--wheat)', marginBottom: '8px'}}>
+                                                Week {phase.week}: {phase.title}
+                                            </div>
+                                            <div style={{color: 'var(--sage)', fontSize: '0.9em', marginBottom: '8px'}}>
+                                                Target: {phase.target}
+                                            </div>
+                                            {phase.daily_actions && phase.daily_actions.length > 0 && (
+                                                <div style={{marginTop: '8px'}}>
+                                                    <div style={{color: 'var(--accent-amber)', fontSize: '0.85em', marginBottom: '5px'}}>
+                                                        Daily Actions:
+                                                    </div>
+                                                    {phase.daily_actions.map((action, j) => (
+                                                        <div key={j} style={{
+                                                            color: 'var(--wheat)',
+                                                            fontSize: '0.85em',
+                                                            marginLeft: '10px',
+                                                            marginBottom: '3px'
+                                                        }}>
+                                                            • {action}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                {plan.success_criteria && (
+                                    <div style={{
+                                        background: 'rgba(74, 158, 74, 0.1)',
+                                        border: '1px solid var(--accent-green)',
+                                        padding: '15px',
+                                        borderRadius: '8px',
+                                        marginTop: '20px'
+                                    }}>
+                                        <div style={{fontWeight: '600', color: 'var(--accent-green)', marginBottom: '8px'}}>
+                                            ✓ Success Criteria
+                                        </div>
+                                        <div style={{color: 'var(--wheat)', fontSize: '0.9em'}}>
+                                            {plan.success_criteria}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        
+                        <h3 style={{marginTop: '30px'}}>📊 Recent Progress</h3>
+                        {progress.length === 0 ? (
+                            <p style={{color: 'var(--sage)', fontStyle: 'italic'}}>
+                                Start logging your progress through conversation!
+                            </p>
+                        ) : (
+                            <div style={{marginTop: '15px'}}>
+                                {progress.map((entry, i) => (
+                                    <div key={i} style={{
+                                        background: 'rgba(26, 47, 26, 0.3)',
+                                        padding: '12px',
+                                        borderRadius: '6px',
+                                        marginBottom: '10px'
+                                    }}>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
+                                            <span style={{color: 'var(--wheat)', fontWeight: '600'}}>
+                                                {new Date(entry.date).toLocaleDateString()}
+                                            </span>
+                                            <span style={{color: entry.completed ? 'var(--accent-green)' : 'var(--accent-amber)'}}>
+                                                {entry.completed ? '✓ Complete' : `${entry.value}`}
+                                            </span>
+                                        </div>
+                                        {entry.notes && (
+                                            <div style={{color: 'var(--sage)', fontSize: '0.85em'}}>
+                                                {entry.notes}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const renderInsights = () => {
+                if (!insights) {
+                    return <div className="card"><h2>🧠 Loading AI insights...</h2></div>;
+                }
+                
+                const { patterns, coaching_message } = insights;
+                
+                // Calculate domain progress from active goals
+                const domainProgress = {};
+                goals.forEach(goal => {
+                    const domain = goal.type || 'general';
+                    const progress = goal.target_value > 0 
+                        ? Math.round((goal.current_value / goal.target_value) * 100)
+                        : 0;
+                    
+                    if (!domainProgress[domain]) {
+                        domainProgress[domain] = { count: 0, totalProgress: 0, goals: [] };
+                    }
+                    domainProgress[domain].count++;
+                    domainProgress[domain].totalProgress += progress;
+                    domainProgress[domain].goals.push({ title: goal.title, progress });
+                });
+                
+                // Calculate average progress per domain
+                Object.keys(domainProgress).forEach(domain => {
+                    domainProgress[domain].avgProgress = Math.round(
+                        domainProgress[domain].totalProgress / domainProgress[domain].count
+                    );
+                });
+                
+                const domainNames = {
+                    'health': '🏥 Health',
+                    'fitness': '💪 Fitness',
+                    'habit_reduction': '🎯 Habits',
+                    'habit_building': '🎯 Habits',
+                    'career_change': '💼 Career',
+                    'learning': '📚 Education',
+                    'business_growth': '💰 Business',
+                    'financial': '💵 Financial',
+                    'project': '🎨 Creative',
+                    'general': '⭐ General'
+                };
+                
+                return (
+                    <div className="card">
+                        <h2>🧠 AI Intelligence & Life Balance</h2>
+                        <p style={{color: 'var(--sage)', marginBottom: '30px'}}>
+                            CHERRY's complete analysis of your life
+                        </p>
+                        
+                        {/* Life Balance Overview */}
+                        {Object.keys(domainProgress).length > 0 && (
+                            <>
+                                <h3>🎯 Life Balance Dashboard</h3>
+                                <div style={{marginBottom: '30px'}}>
+                                    {Object.entries(domainProgress).map(([domain, data]) => (
+                                        <div key={domain} style={{marginBottom: '15px'}}>
+                                            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
+                                                <span style={{color: 'var(--wheat)', fontWeight: '600'}}>
+                                                    {domainNames[domain] || domain}
+                                                </span>
+                                                <span style={{color: 'var(--accent-green)'}}>
+                                                    {data.avgProgress}% ({data.count} {data.count === 1 ? 'goal' : 'goals'})
+                                                </span>
+                                            </div>
+                                            <div style={{
+                                                width: '100%',
+                                                height: '12px',
+                                                background: 'rgba(26, 47, 26, 0.3)',
+                                                borderRadius: '6px',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <div style={{
+                                                    width: `${data.avgProgress}%`,
+                                                    height: '100%',
+                                                    background: data.avgProgress < 30 ? 'var(--accent-red)' :
+                                                               data.avgProgress < 70 ? 'var(--accent-amber)' :
+                                                               'var(--accent-green)',
+                                                    transition: 'width 0.5s ease'
+                                                }}></div>
+                                            </div>
+                                            <div style={{fontSize: '0.85em', color: 'var(--sage)', marginTop: '3px'}}>
+                                                {data.goals.map(g => g.title).join(', ')}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                        
+                        {coaching_message && (
+                            <div style={{
+                                background: 'rgba(74, 158, 74, 0.1)',
+                                border: '2px solid var(--accent-green)',
+                                padding: '20px',
+                                borderRadius: '8px',
+                                marginBottom: '30px'
+                            }}>
+                                <div style={{fontWeight: '600', color: 'var(--accent-green)', marginBottom: '10px'}}>
+                                    📋 Your Coach Says:
+                                </div>
+                                <div style={{color: 'var(--wheat)', fontSize: '1.1em', lineHeight: '1.6'}}>
+                                    {coaching_message}
+                                </div>
+                            </div>
+                        )}
+                        
+                        <h3>📊 30-Day Health Patterns</h3>
+                        <div className="metrics-grid" style={{marginBottom: '30px'}}>
+                            <div className="metric-card">
+                                <div className="metric-label">Avg Sleep</div>
+                                <div className="metric-value">{patterns.sleep_avg}/10</div>
+                                <div className="metric-sub">
+                                    {patterns.trends.includes('sleep_improving') && '↑ Improving'}
+                                    {patterns.trends.includes('sleep_declining') && '↓ Declining'}
+                                    {!patterns.trends.includes('sleep_improving') && !patterns.trends.includes('sleep_declining') && 'Stable'}
+                                </div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Avg Energy</div>
+                                <div className="metric-value">{patterns.energy_avg}/10</div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Avg Knee Pain</div>
+                                <div className="metric-value">{patterns.knee_pain_avg}/10</div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Avg Calories</div>
+                                <div className="metric-value">{patterns.calories_avg}</div>
+                                <div className="metric-sub">Target: 2200</div>
+                            </div>
+                            
+                            <div className="metric-card">
+                                <div className="metric-label">Consistency</div>
+                                <div className="metric-value">{patterns.consistency_score}%</div>
+                                <div className="metric-sub">Days tracked</div>
+                            </div>
+                        </div>
+                        
+                        {patterns.insights && patterns.insights.length > 0 && (
+                            <>
+                                <h3>💡 Key Insights</h3>
+                                <div style={{marginTop: '15px'}}>
+                                    {patterns.insights.map((insight, i) => (
+                                        <div key={i} style={{
+                                            background: 'rgba(26, 47, 26, 0.3)',
+                                            padding: '15px',
+                                            borderRadius: '8px',
+                                            marginBottom: '10px',
+                                            borderLeft: '3px solid var(--accent-amber)'
+                                        }}>
+                                            <div style={{color: 'var(--wheat)'}}>
+                                                • {insight}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                        
+                        {patterns.best_day && patterns.worst_day && (
+                            <div style={{marginTop: '30px'}}>
+                                <h3>📈 Performance</h3>
+                                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
+                                    <div style={{
+                                        background: 'rgba(74, 158, 74, 0.1)',
+                                        border: '1px solid var(--accent-green)',
+                                        padding: '15px',
+                                        borderRadius: '8px'
+                                    }}>
+                                        <div style={{color: 'var(--accent-green)', fontWeight: '600', marginBottom: '5px'}}>
+                                            ✓ Best Day
+                                        </div>
+                                        <div style={{color: 'var(--wheat)'}}>
+                                            {new Date(patterns.best_day).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    
+                                    <div style={{
+                                        background: 'rgba(255, 107, 107, 0.1)',
+                                        border: '1px solid var(--accent-red)',
+                                        padding: '15px',
+                                        borderRadius: '8px'
+                                    }}>
+                                        <div style={{color: 'var(--accent-red)', fontWeight: '600', marginBottom: '5px'}}>
+                                            ⚠ Toughest Day
+                                        </div>
+                                        <div style={{color: 'var(--wheat)'}}>
+                                            {new Date(patterns.worst_day).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <button 
+                            className="btn" 
+                            onClick={loadInsights}
+                            style={{width: '100%', marginTop: '30px'}}
+                        >
+                            🔄 Refresh Insights
+                        </button>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>🍒 CHERRY</h1>
+                        <div className="subtitle">Complete Health Intelligence System</div>
+                        <div>
+                            <span className="badge">🤖 AI POWERED</span>
+                            <span className="badge">📊 ANALYTICS</span>
+                            <span className="badge">📅 CALENDAR</span>
+                        </div>
+                    </div>
+
+                    <div className="tabs">
+                        <button className={`tab ${tab === 'chat' ? 'active' : ''}`} onClick={() => setTab('chat')}>
+                            💬 AI Chat
+                        </button>
+                        <button className={`tab ${tab === 'dashboard' ? 'active' : ''}`} onClick={() => { setTab('dashboard'); loadMetricsHistory(); loadTodayMetrics(); loadNutrition(); }}>
+                            📊 Dashboard
+                        </button>
+                        <button className={`tab ${tab === 'charts' ? 'active' : ''}`} onClick={() => { setTab('charts'); loadMetricsHistory(); }}>
+                            📈 Analytics
+                        </button>
+                        <button className={`tab ${tab === 'nutrition' ? 'active' : ''}`} onClick={() => { setTab('nutrition'); loadNutrition(); }}>
+                            🥗 Nutrition
+                        </button>
+                        <button className={`tab ${tab === 'insights' ? 'active' : ''}`} onClick={() => { setTab('insights'); loadInsights(); }}>
+                            🧠 Insights
+                        </button>
+                        
+                        {/* Dynamic Goal Tabs */}
+                        {goals.map(goal => (
+                            <button 
+                                key={goal.id} 
+                                className={`tab ${tab === `goal-${goal.id}` ? 'active' : ''}`} 
+                                onClick={() => { 
+                                    setTab(`goal-${goal.id}`); 
+                                    setActiveGoal(goal);
+                                }}
+                                style={{
+                                    background: tab === `goal-${goal.id}` ? 'var(--pine)' : 'rgba(26, 47, 26, 0.5)',
+                                    borderLeft: '3px solid var(--accent-green)'
+                                }}
+                            >
+                                {goal.icon} {goal.title}
+                            </button>
+                        ))}
+                    </div>
+
+                    {tab === 'chat' && renderChat()}
+                    {tab === 'dashboard' && renderDashboard()}
+                    {tab === 'charts' && renderCharts()}
+                    {tab === 'nutrition' && renderNutrition()}
+                    {tab === 'insights' && renderInsights()}
+                    {tab.startsWith('goal-') && activeGoal && renderGoal(activeGoal)}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
